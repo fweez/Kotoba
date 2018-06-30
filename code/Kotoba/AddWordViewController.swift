@@ -23,7 +23,13 @@ final class AddWordViewController: UIViewController
 		super.viewDidLoad()
 		prepareKeyboardAvoidance()
 	}
-	
+
+    override func viewWillAppear(_ animated: Bool)
+    {
+        super.viewWillAppear(animated)
+        self.navigationController?.setToolbarHidden(true, animated: false)
+    }
+    
 	override func viewDidAppear(_ animated: Bool)
 	{
 		super.viewDidAppear(animated)
@@ -94,9 +100,10 @@ extension AddWordViewController: UITextFieldDelegate
 	func textFieldShouldReturn(_ textField: UITextField) -> Bool
 	{
 		// Search the dictionary
-		if let word = textField.text.map(Word.init).filter(showDefinition)
+        if let text = textField.text
 		{
 			// Add word to list of words
+            let word = Word(text: text, time: Date())
 			words.add(word: word)
 			
 			// Clear the text field when word is successfully found
