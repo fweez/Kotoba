@@ -38,4 +38,15 @@ class WordListTests: XCTestCase
 		subject.add(possibleDuplicate: "b")
 		XCTAssertEqual(subject, ["b", "a", "c"])
 	}
+    
+    func testShouldReplaceOldWordWithNew()
+    {
+        let distantPastDates = [Date(timeIntervalSince1970: 0), Date(timeIntervalSince1970: 1), Date(timeIntervalSince1970: 2)]
+        var words = ["a", "b", "c"].enumerated().map { Word(text: $1, time: distantPastDates[$0]) }
+        let now = Date()
+        words.add(possibleDuplicate: Word(text: "b", time: now))
+        let first = words.first
+        XCTAssertEqual(first?.text, "b")
+        XCTAssertEqual(first?.time, now)
+    }
 }

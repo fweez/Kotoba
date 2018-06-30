@@ -10,11 +10,14 @@ import UIKit
 
 class WordListViewController: UITableViewController
 {
+    var userSortedWords: WordList!
+    
 	override func viewDidLoad()
 	{
 		super.viewDidLoad()
 		prepareEditButton()
 		prepareSelfSizingTableCells()
+        prepareToolbar()
 	}
 	
 	deinit
@@ -66,7 +69,7 @@ extension WordListViewController
 	override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
 	{
 		// Search the dictionary
-		let word = words[indexPath.row]
+		let word = userSortedWords[indexPath.row]
 		let _ = showDefinition(forWord: word)
 		
 		// Reset the table view
@@ -86,7 +89,9 @@ extension WordListViewController
 	{
 		if editingStyle == .delete
 		{
-			words.delete(wordAt: indexPath.row)
+            let word = userSortedWords[indexPath.row]
+			words.delete(word)
+            userSortedWords.delete(wordAt: indexPath.row)
 			self.tableView.deleteRows(at: [indexPath], with: .automatic)
 		}
 	}
@@ -109,8 +114,66 @@ extension WordListViewController
 	override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
 	{
 		let cell = tableView.dequeueReusableCell(withIdentifier: "Word", for: indexPath)
-		cell.textLabel?.text = words[indexPath.row].text
+		cell.textLabel?.text = userSortedWords[indexPath.row].text
+        let df = DateFormatter()
+        df.timeStyle = .none
+        df.dateStyle = .medium
+        df.doesRelativeDateFormatting = true
+        cell.detailTextLabel?.text = df.string(from: userSortedWords[indexPath.row].time)
 		prepareTextLabelForDynamicType(label: cell.textLabel)
 		return cell
 	}
+}
+
+// MARK:- Toolbar handling
+private let ALPHABETICAL_SORT_KEY = "alphabeticalSort"
+extension WordListViewController
+{
+    override func viewWillAppear(_ animated: Bool)
+    {
+        super.viewWillAppear(animated)
+        userSortedWords = words
+        navigationController?.setToolbarHidden(false, animated: false)
+    }
+    
+    func prepareToolbar()
+    {
+        setToolbarItems([currentToolbarButton()], animated: false)
+    }
+    
+    func currentToolbarButton() -> UIBarButtonItem
+    {
+        let text: String
+        let dest: Selector
+        
+        // Note! This is a toggle. So when you tap the button called "sorted alphabetically" you're changing modes to chronological
+        if UserDefaults.standard.bool(forKey: ALPHABETICAL_SORT_KEY) == true
+        {
+            text = "Sorted alphabetically"
+            dest = #selector(sortChronologically)
+        }
+        else
+        {
+            text = "Sorted chronologically"
+            dest = #selector(sortAlphabetically)
+        }
+        
+        return UIBarButtonItem(title: text, style: .plain, target: self, action: dest)
+    }
+    
+    @objc func sortChronologically()
+    {
+        UserDefaults.standard.set(false, forKey: ALPHABETICAL_SORT_KEY)
+        setToolbarItems([currentToolbarButton()], animated: true)
+        userSortedWords.sortChronologically()
+        self.tableView.reloadData()
+    }
+    
+    @objc func sortAlphabetically()
+    {
+        UserDefaults.standard.set(true, forKey: ALPHABETICAL_SORT_KEY)
+        setToolbarItems([currentToolbarButton()], animated: true)
+        userSortedWords.sortAlphabetically()
+        self.tableView.reloadData()
+    }
 }
