@@ -106,7 +106,6 @@ extension AddWordViewController: UITextFieldDelegate
             if showDefinition(forWord: word) {
                 // Add word to list of words
                 words.add(word: word)
-			
                 // Clear the text field when word is successfully found
                 textField.text = nil
             }
